@@ -8,6 +8,14 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     on<CheckoutDeliveryChanged>(_onDeliveryChanged);
     on<CheckoutPaymentChanged>(_onPaymentChanged);
     on<CheckoutSubmitted>(_onSubmitted);
+    on<CheckoutAddressUpdated>(_onAddressUpdated);
+  }
+
+  void _onAddressUpdated(
+    CheckoutAddressUpdated event,
+    Emitter<CheckoutState> emit,
+  ) {
+    emit(state.copyWith(city: event.city, addressLine: event.addressLine));
   }
 
   void _onDeliveryChanged(

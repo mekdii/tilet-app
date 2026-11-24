@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tilet/features/account/presentation/pages/account_tab.dart';
 import 'package:tilet/features/auth/presentation/pages/login_page.dart';
 import 'package:tilet/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:tilet/features/cart/presentation/pages/cart_page.dart';
@@ -13,6 +14,8 @@ import '../bloc/home_state.dart';
 import '../widgets/category_item.dart';
 import '../widgets/home_hero.dart';
 import '../widgets/product_card.dart';
+import '../widgets/search_tab.dart';
+import '../widgets/wishlist_tab.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -29,6 +32,185 @@ class HomePage extends StatelessWidget {
 class _HomeView extends StatelessWidget {
   const _HomeView();
 
+  void _openProductDetails(BuildContext context, dynamic product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ProductDetailsPage(product: product)),
+    );
+  }
+
+  Widget _buildHomeFeed(BuildContext context, HomeState state) {
+    return RefreshIndicator(
+      color: AppColors.forest,
+      onRefresh: () async => context.read<HomeBloc>().add(const HomeStarted()),
+      child: CustomScrollView(
+        slivers: [
+          // 1. Hero Banner
+          SliverToBoxAdapter(
+            child: HomeHero(
+              cartCount: context.watch<CartBloc>().state.totalItems,
+              onMenuTap: () {},
+              onCartTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CartPage()),
+              ),
+              onShopNowTap: () =>
+                  context.read<HomeBloc>().add(const HomeTabChanged(1)),
+            ),
+          ),
+
+          // 2. Dynamic Category Pills
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 62,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
+                itemCount: state.categories.length + 1,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final isAll = index == 0;
+                  final category = isAll ? null : state.categories[index - 1];
+                  final active = isAll
+                      ? state.selectedCategoryId == null
+                      : state.selectedCategoryId == category!.id;
+
+                  return GestureDetector(
+                    onTap: () => context.read<HomeBloc>().add(
+                      HomeCategorySelected(isAll ? null : category!.id),
+                    ),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: active ? AppColors.forest : AppColors.paper,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: active ? AppColors.goldBorder : AppColors.line,
+                          width: active ? 1.3 : 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          isAll ? 'All' : category!.name,
+                          style: TextStyle(
+                            fontFamily: 'Arial',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: active ? AppColors.goldLight : AppColors.ink,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // 3. Dynamic Section Header
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 14, 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    state.selectedCategoryTitle,
+                    style: const TextStyle(
+                      color: AppColors.forest,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        context.read<HomeBloc>().add(const HomeTabChanged(1)),
+                    child: const Text(
+                      'See All  ›',
+                      style: TextStyle(
+                        color: AppColors.gold,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 4. Loading / Error / 2-Column Product Grid
+          if (state.isLoading)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: CircularProgressIndicator(color: AppColors.forest),
+              ),
+            )
+          else if (state.errorMessage != null)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      state.errorMessage!,
+                      style: const TextStyle(
+                        fontFamily: 'Arial',
+                        color: AppColors.muted,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      onPressed: () =>
+                          context.read<HomeBloc>().add(const HomeStarted()),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (state.products.isEmpty)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Text(
+                  'No items in this category yet.',
+                  style: TextStyle(fontFamily: 'Arial', color: AppColors.muted),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 14,
+                  crossAxisSpacing: 14,
+                  childAspectRatio: 0.66,
+                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final product = state.products[index];
+                  return ProductCard(
+                    product: product,
+                    onTap: () => _openProductDetails(context, product),
+                    onFavoriteTap: () => context.read<HomeBloc>().add(
+                      HomeFavoriteToggled(product.id),
+                    ),
+                  );
+                }, childCount: state.products.length),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -36,88 +218,36 @@ class _HomeView extends StatelessWidget {
       child: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
           return Scaffold(
-            body: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  HomeHero(
-                    cartCount: context.watch<CartBloc>().state.totalItems,
-                    onMenuTap: () {},
-                    onCartTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const CartPage()),
-                    ),
-                    onShopNowTap: () {},
+            body: IndexedStack(
+              index: state.selectedTab,
+              children: [
+                // Tab 0: Home Feed
+                _buildHomeFeed(context, state),
+
+                // Tab 1: Search
+                SearchTab(
+                  products: state.products,
+                  onProductTap: (product) =>
+                      _openProductDetails(context, product),
+                  onFavoriteTap: (product) => context.read<HomeBloc>().add(
+                    HomeFavoriteToggled(product.id),
                   ),
-                  const SizedBox(height: 20),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CategoryItem(
-                          icon: Icons.checkroom,
-                          label: 'New\nArrivals',
-                        ),
-                        CategoryItem(icon: Icons.star, label: 'Best\nSellers'),
-                        CategoryItem(icon: Icons.sell, label: 'Offers'),
-                        CategoryItem(
-                          icon: Icons.favorite_border,
-                          label: 'Favorites',
-                        ),
-                      ],
-                    ),
+                ),
+
+                // Tab 2: Wishlist
+                WishlistTab(
+                  favorites: state.products.where((p) => p.isFavorite).toList(),
+                  onProductTap: (product) =>
+                      _openProductDetails(context, product),
+                  onFavoriteTap: (product) => context.read<HomeBloc>().add(
+                    HomeFavoriteToggled(product.id),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(19, 24, 17, 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Popular Kemis',
-                          style: TextStyle(
-                            color: AppColors.forest,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'See All  ›',
-                            style: TextStyle(color: AppColors.forest),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 300,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: state.products.length,
-                      itemBuilder: (context, index) {
-                        final product = state.products[index];
-                        return ProductCard(
-                          product: product,
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  ProductDetailsPage(product: product),
-                            ),
-                          ),
-                          onFavoriteTap: () => context.read<HomeBloc>().add(
-                            HomeFavoriteToggled(product.id),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                  onExploreTap: () =>
+                      context.read<HomeBloc>().add(const HomeTabChanged(0)),
+                ),
+
+                // const AccountTab(),
+              ],
             ),
             bottomNavigationBar: Column(
               mainAxisSize: MainAxisSize.min,
@@ -139,7 +269,7 @@ class _HomeView extends StatelessWidget {
                   indicatorColor: AppColors.navIndicator,
                   destinations: const [
                     NavigationDestination(
-                      icon: Icon(Icons.home_outlined, color: AppColors.forest),
+                      icon: Icon(Icons.home_outlined, color: AppColors.muted),
                       selectedIcon: Icon(Icons.home, color: AppColors.forest),
                       label: 'Home',
                     ),

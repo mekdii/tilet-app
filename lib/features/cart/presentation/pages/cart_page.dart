@@ -9,6 +9,7 @@ import 'package:tilet/features/cart/presentation/bloc/cart_state.dart';
 import 'package:tilet/features/cart/presentation/bloc/widgets/cart_checkout_bar.dart';
 import 'package:tilet/features/cart/presentation/bloc/widgets/cart_item_tile.dart';
 import 'package:tilet/features/cart/presentation/bloc/widgets/promo_code_bar.dart';
+import 'package:tilet/features/checkout/presentation/pages/checkout_page.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -99,18 +100,16 @@ class CartPage extends StatelessWidget {
                               for (int i = 0; i < state.items.length; i++) ...[
                                 CartItemTile(
                                   item: state.items[i],
-                                  onIncrement: () => context
-                                      .read<CartBloc>()
-                                      .add(
+                                  onIncrement: () =>
+                                      context.read<CartBloc>().add(
                                         CartQuantityChanged(
                                           productId: state.items[i].product.id,
                                           size: state.items[i].size,
                                           delta: 1,
                                         ),
                                       ),
-                                  onDecrement: () => context
-                                      .read<CartBloc>()
-                                      .add(
+                                  onDecrement: () =>
+                                      context.read<CartBloc>().add(
                                         CartQuantityChanged(
                                           productId: state.items[i].product.id,
                                           size: state.items[i].size,
@@ -118,11 +117,11 @@ class CartPage extends StatelessWidget {
                                         ),
                                       ),
                                   onRemove: () => context.read<CartBloc>().add(
-                                        CartItemRemoved(
-                                          productId: state.items[i].product.id,
-                                          size: state.items[i].size,
-                                        ),
-                                      ),
+                                    CartItemRemoved(
+                                      productId: state.items[i].product.id,
+                                      size: state.items[i].size,
+                                    ),
+                                  ),
                                 ),
                                 const Divider(color: AppColors.line, height: 1),
                               ],
@@ -149,7 +148,10 @@ class CartPage extends StatelessWidget {
                 CartCheckoutBar(
                   formattedTotal: state.formattedTotal,
                   enabled: state.items.isNotEmpty,
-                  onCheckout: () {},
+                  onCheckout: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CheckoutPage()),
+                  ),
                 ),
                 const TextileFooter(height: 36),
               ],

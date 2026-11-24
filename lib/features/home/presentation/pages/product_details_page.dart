@@ -42,7 +42,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             children: [
               // Top Full-Bleed Sliding Gallery
               ProductImageSlider(
-                images: product.gallery,
+                images: product.images,
                 isFavorite: _isFavorite,
                 onBackTap: () => Navigator.pop(context),
                 onFavoriteTap: () => setState(() => _isFavorite = !_isFavorite),

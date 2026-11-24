@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tilet/core/theme/app_colors.dart';
+import 'package:tilet/core/widgets/product_image.dart';
 
 class ProductImageSlider extends StatefulWidget {
   const ProductImageSlider({
@@ -45,11 +46,21 @@ class _ProductImageSliderState extends State<ProductImageSlider> {
             itemCount: widget.images.length,
             onPageChanged: (index) => setState(() => _currentIndex = index),
             itemBuilder: (context, index) {
-              return Image.asset(
-                widget.images[index],
+              final imageUrl = widget.images.isEmpty
+                  ? ''
+                  : widget.images[index];
+              return ProductImage(
+                imageUrl: imageUrl,
+                width: double.infinity,
+                height: double.infinity,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
               );
+              // return Image.asset(
+              //   widget.images[index],
+              //   fit: BoxFit.cover,
+              //   alignment: Alignment.topCenter,
+              // );
             },
           ),
 
@@ -64,10 +75,7 @@ class _ProductImageSliderState extends State<ProductImageSlider> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.45),
-                    Colors.transparent,
-                  ],
+                  colors: [Colors.black.withOpacity(0.45), Colors.transparent],
                 ),
               ),
             ),

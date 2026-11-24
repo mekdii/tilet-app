@@ -27,3 +27,17 @@ final class CheckoutPaymentChanged extends CheckoutEvent {
 final class CheckoutSubmitted extends CheckoutEvent {
   const CheckoutSubmitted();
 }
+
+
+final class CheckoutAddressUpdated extends CheckoutEvent {
+  const CheckoutAddressUpdated({
+    required this.city,
+    required this.addressLine,
+  });
+
+  final String city;
+  final String addressLine;
+
+  @override
+  List<Object?> get props => [city, addressLine];
+}

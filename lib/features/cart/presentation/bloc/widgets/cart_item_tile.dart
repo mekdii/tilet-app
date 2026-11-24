@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tilet/core/theme/app_colors.dart';
+import 'package:tilet/core/widgets/product_image.dart';
 import 'package:tilet/features/cart/data/cart_item_model.dart';
 
 class CartItemTile extends StatelessWidget {
@@ -26,12 +27,11 @@ class CartItemTile extends StatelessWidget {
           // Portrait Kemis Thumbnail
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Image.asset(
-              item.product.image,
+            child: ProductImage(
+              imageUrl: item.product.image,
               width: 92,
               height: 108,
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
+              borderRadius: BorderRadius.circular(16),
             ),
           ),
           const SizedBox(width: 14),

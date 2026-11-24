@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:tilet/core/widgets/product_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/product_model.dart';
 
@@ -8,7 +8,7 @@ class ProductCard extends StatelessWidget {
     super.key,
     required this.product,
     required this.onFavoriteTap,
-    required this.onTap
+    required this.onTap,
   });
 
   final ProductModel product;
@@ -20,8 +20,8 @@ class ProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 178,
-        margin: const EdgeInsets.only(right: 12, bottom: 4),
+      
+       
         decoration: BoxDecoration(
           color: AppColors.paper,
           borderRadius: BorderRadius.circular(15),
@@ -45,12 +45,14 @@ class ProductCard extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(15),
                     ),
-                    child: Image.asset(
-                      product.image,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
+                    child: ProductImage(
+                      imageUrl: product.image,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(15),
+                      ),
                     ),
                   ),
+
                   Positioned(
                     top: 8,
                     right: 8,
@@ -63,7 +65,9 @@ class ProductCard extends StatelessWidget {
                           product.isFavorite
                               ? Icons.favorite
                               : Icons.favorite_border,
-                          color: product.isFavorite ? Colors.redAccent : AppColors.ink,
+                          color: product.isFavorite
+                              ? Colors.redAccent
+                              : AppColors.ink,
                           size: 19,
                         ),
                       ),
@@ -120,4 +124,5 @@ class ProductCard extends StatelessWidget {
       ),
     );
   }
+
 }

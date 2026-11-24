@@ -29,3 +29,13 @@ final class HomeFavoriteToggled extends HomeEvent{
   List<Object?> get props => [productId];
   
   }
+
+  final class HomeCategorySelected extends HomeEvent {
+  const HomeCategorySelected(this.categoryId);
+
+  /// `null` means "All"
+  final int? categoryId;
+
+  @override
+  List<Object?> get props => [categoryId];
+}
