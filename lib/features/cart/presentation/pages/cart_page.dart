@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tilet/core/theme/app_colors.dart';
 import 'package:tilet/core/widgets/textile_footer.dart';
+import 'package:tilet/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:tilet/features/auth/presentation/pages/login_page.dart';
 import 'package:tilet/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:tilet/features/cart/presentation/bloc/cart_event.dart';
 import 'package:tilet/features/cart/presentation/bloc/cart_state.dart';
@@ -148,10 +150,24 @@ class CartPage extends StatelessWidget {
                 CartCheckoutBar(
                   formattedTotal: state.formattedTotal,
                   enabled: state.items.isNotEmpty,
-                  onCheckout: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CheckoutPage()),
-                  ),
+                  onCheckout: ()async{
+                    final isAuthenticated = context.read<AuthBloc>().state.isAuthenticated;
+
+    if (!isAuthenticated) {
+      final loggedIn = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginPage(returnOnSuccess: true),
+        ),
+      );
+      if (loggedIn != true || !context.mounted) return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CheckoutPage()),
+    );
+                  }
                 ),
                 const TextileFooter(height: 36),
               ],
